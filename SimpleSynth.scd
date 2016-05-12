@@ -13,9 +13,10 @@ s.scope;
 //Use this for determining which MIDI input source to use
 MIDIClient.init;
 
-//Connect the first MIDI input device. Adjust this as needed for your
+//Connect to a MIDI device. Adjust this as needed for your
 //input devices.
-MIDIIn.connect(0, MIDIClient.sources[0]);
+MIDIIn.connect(0, MIDIClient.sources[0]); //for me this is MIDI Yoke 1
+MIDIIn.connect(0, MIDIClient.sources[8]); //for me this is my USB keyboard
 
 (
 //Synth parameters
@@ -29,6 +30,7 @@ var freq_knob, freq_control;
 var cutoff_knob, cutoff_control;
 //Master Volume control
 var vol_slider, vol_control;
+var env_view;
 
 //Active notes array
 var active_notes = nil!128;
@@ -91,6 +93,8 @@ vol_slider.action = {
             active_notes[i].set(\amp, synth_params.amp);
         }
     });
+
+
 };
 
 window.front;
@@ -109,4 +113,10 @@ MIDIIn.noteOff = {|src, chan, midinote, velocity|
     release_func.value(midinote);
 };
 
+)
+
+(
+//These are useful for visualizing the sound
+s.scope;
+s.freqscope;
 )

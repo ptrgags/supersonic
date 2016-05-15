@@ -19,7 +19,7 @@ MIDIIn.connect(0, MIDIClient.sources[8]); //for me this is my USB keyboard
 
 (
 //Synth parameters
-var synth_params = (amp: 0.5, cutoff: 440, bend: 0.0);
+var synth_params = (amp: 0.5, cutoff: 440, bend: 0.0, wave: 0);
 
 //GUI Window
 var window;
@@ -27,6 +27,10 @@ var window;
 var freq_knob, freq_control;
 //Low pass filter cutoff control
 var cutoff_knob, cutoff_control;
+//Waveform select
+var wave_knob, wave_control;
+//Pulse width knob
+var pulse_knob;
 //Master Volume control
 var vol_slider, vol_control;
 var env_view;
@@ -44,14 +48,22 @@ var release_func = {|index|
 
 //Saw -> LPF -> Env (ADSR)
 SynthDef(\saw_filter, {
-    //Saw Frequency and amplitude, cutoff frequency, envelope gate
-    arg freq=440, amp=0.5, cutoff=440, gate=1, bend=0.0;
+    //Saw Frequency and amplitude, cutoff frequency, envelope gate, pitch bend [-1, 1], waveform index, pulse width
+    arg freq=440, amp=0.5, cutoff=440, gate=1, bend=0.0, wave=0;
 
     //Saw oscillator and low pass filter
     var osc, filter, env, env_gen;
+    //pitch calculated from note freq + bend amount
+    var pitch = freq + (bend * 100);
+
+    var osc_list = [
+        Saw.ar(pitch),
+        SinOsc.ar(pitch),
+        Pulse.ar(pitch, width: 0.5),
+        Pulse.ar(pitch, width: 0.9)];
 
     //Generate the Saw tone, adjusting amp and frequency
-    osc = amp * Pulse.ar(freq + (bend * 100), width: 0.9);
+    osc = amp * Select.ar(wave, osc_list);
 
     //Pass the saw tone through a low pass filter
     filter = LPF.ar(osc, cutoff);
@@ -95,6 +107,19 @@ vol_slider.action = {
     });
 };
 
+//Make a knob for selecting the wave form
+wave_knob = Knob(window, Rect(10, 10, 40, 40));
+wave_control = ControlSpec(0, 3, step: 1, default: 0);
+wave_knob.action = {
+    synth_params.wave = wave_control.map(wave_knob.value);
+    for(0, 127, {|i|
+        if (active_notes[i].notNil) {
+            active_notes[i].set(\wave, synth_params.wave);
+        }
+    });
+};
+wave_knob.mode = \vert;
+
 window.front;
 
 //On key press, create a new synth for that note
@@ -104,7 +129,8 @@ MIDIIn.noteOn = {
         \freq, midinote.midicps,
         \amp, synth_params.amp,
         \cutoff, synth_params.cutoff,
-        \bend, synth_params.bend]);
+        \bend, synth_params.bend,
+        \wave, synth_params.wave]);
 };
 
 //On key release, release the synth for that note

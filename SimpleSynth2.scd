@@ -8,7 +8,7 @@ s.freqscope;
 SynthDef(\simple_synth, {
     //Gate, Osc Frequency and amplitude, cutoff frequency,
     //envelope gate, pitch bend [-1, 1], waveform index {0:Saw, 1:sin
-    arg gate=1, freq=440, amp=0.5, cutoff=440, bend=0.0, wave=0;
+    arg gate=1, freq=440, amp=0.5, cutoff=440, bend=0.0, wave=0, attack=0.01, decay=0.3, sustain=0.5, release=0.3;
 
     //Saw oscillator and low pass filter
     var osc, filter, env, env_gen;
@@ -30,7 +30,7 @@ SynthDef(\simple_synth, {
 
     //ADSR Envelope
     //TODO: Customize this envelope eventually
-    env = Env.adsr(0.01, 0.3, 0.5, 0.3);
+    env = Env.adsr(attack, decay, sustain, release);
 
     env_gen = EnvGen.kr(env, gate, doneAction: 2);
 
@@ -45,7 +45,11 @@ var default_settings = (
     amp: 0.5,
     cutoff: 440,
     bend: 0.0,
-    wave: 0
+    wave: 0,
+    attack: 0.01,
+    decay: 0.3,
+    sustain: 0.5,
+    release: 0.3
 );
 t = SynthTable.new;
 t.init(default_settings, \simple_synth);
@@ -99,6 +103,8 @@ var wave_menu;
 var cutoff_knob, cutoff_control;
 var vol_slider, vol_control;
 
+var adsr_sliders;
+
 //Make the GUI window
 window = Window("SimpleSynth", Rect(100, 100, 640, 480));
 
@@ -128,5 +134,9 @@ vol_slider.action = {
     t.update;
 };
 
+adsr_sliders = ADSRSliders.new.init(window, 10, 120, 10, t.settings);
+
 window.front;
 )
+
+t.settings;

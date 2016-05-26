@@ -43,7 +43,7 @@ SynthDef(\simple_synth, {
 var default_settings = (
     freq: 440,
     amp: 0.5,
-    cutoff: 440,
+    cutoff: 10000,
     bend: 0.0,
     wave: 0,
     attack: 0.01,
@@ -113,7 +113,6 @@ wave_menu = PopUpMenu(window, Rect(10, 10, 90, 20));
 wave_menu.items = ["Saw", "Sine", "Square", "Thin Pulse"];
 wave_menu.action = {|menu|
     t.settings.wave = menu.value;
-    t.settings.postln;
     t.update;
 };
 
@@ -134,9 +133,7 @@ vol_slider.action = {
     t.update;
 };
 
-adsr_sliders = ADSRSliders.new.init(window, 10, 120, 10, t.settings);
+adsr_sliders = ADSRSliders.new.init(window, 10, 120, 10, t);
 
 window.front;
 )
-
-t.settings;
